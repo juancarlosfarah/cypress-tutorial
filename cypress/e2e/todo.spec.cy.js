@@ -1,3 +1,5 @@
+import apiService from '../../src/services/apiService';
+
 describe('To-Do List App', () => {
     beforeEach(() => {
         // Before each test, visit the app
@@ -49,7 +51,7 @@ describe('To-Do App Spies', () => {
     });
 
     it('should spy on the postTask method when a task is added', () => {
-        // Access the Vue instance and spy on the logTaskAdded method
+        // Access the Vue instance and spy on the postTask method
         cy.window().then((win) => {
             cy.spy(win.__app__, 'postTask').as('postTaskSpy');
         });
@@ -69,7 +71,7 @@ describe('To-Do App Stubs', () => {
     });
 
     it('should stub the postTask method', () => {
-        // Access the Vue instance and stub the logTaskAdded method
+        // Access the Vue instance and stub the postTask method
         cy.window().then((win) => {
             cy.stub(win.__app__, 'postTask').as('postTaskStub');
         });
@@ -82,7 +84,51 @@ describe('To-Do App Stubs', () => {
     });
 });
 
-describe('To-Do App Network Mocking', () => {
+describe('To-Do App Mocks with apiService', () => {
+    beforeEach(() => {
+        cy.visit('/');
+    });
+
+    it('should mock the patchTask method to verify invocation', () => {
+        // Create a Sinon mock for apiService
+        const mock = Cypress.sinon.mock(apiService);
+
+        // Define the mock behavior: no return value, just expect it to be called
+        const taskId = 123; // Example task ID
+        const updates = { status: 'doing' }; // Example updates
+        mock.expects('patchTask').once().withArgs(taskId, updates);
+
+        // Simulate calling the patchTask method
+        cy.window().then((win) => {
+            apiService.patchTask(taskId, updates);
+            // Verify that the mock expectations are met
+            mock.verify()
+            // Restore the original method
+            mock.restore();
+        });
+    });
+
+    it('should mock the putTask method to verify invocation', () => {
+        // Create a Sinon mock for apiService
+        const mock = Cypress.sinon.mock(apiService);
+
+        // Define the mock behavior: no return value, just expect it to be called
+        const task = { id: 123, text: 'Updated Task', status: 'done' }; // Example task object
+        mock.expects('putTask').once().withArgs(task);
+
+        // Simulate calling the putTask method
+        cy.window().then((win) => {
+            apiService.putTask(task);
+            // Verify that the mock expectations are met
+            mock.verify()
+            // Restore the original method
+            mock.restore();
+        });
+    });
+});
+
+
+describe('To-Do App Network Intercepting', () => {
     beforeEach(() => {
         // Intercept the GET request to /api/todos
         cy.intercept('GET', '/api/todos', {

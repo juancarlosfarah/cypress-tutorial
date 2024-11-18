@@ -63,6 +63,8 @@
 </template>
 
 <script>
+import apiService from "@/services/apiService";
+
 export default {
   data() {
     return {
@@ -78,6 +80,12 @@ export default {
         });
   },
   methods: {
+    updateTaskStatus(taskId, status) {
+      apiService.patchTask(taskId, { status });
+    },
+    updateTask(task) {
+      apiService.putTask(task);
+    },
     addTask() {
       if (this.newTask.trim()) {
         // Add the new task with default status of 'pending'
